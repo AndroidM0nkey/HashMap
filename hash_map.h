@@ -16,7 +16,7 @@ public:
     using const_iterator = typename std::list<std::pair<const KeyType, ValueType>>::const_iterator;
     using value_type = std::pair<const KeyType, ValueType>;
     using value_type_nonconst = std::pair<KeyType, ValueType>;
-    const std::size_t default_size = 1024;
+    const std::size_t size_default = 1024;
 
     iterator begin() noexcept {
         return nodes.begin();
@@ -34,15 +34,12 @@ public:
         return nodes.end();
     }
 
-    HashMap(Hash hasher = Hash()) : hasher(hasher) {
-        size_table = default_size;
-        table.resize(default_size);
+    HashMap(Hash hasher = Hash()) : size_table(size_default), hasher(hasher) {
+        table.resize(size_default);
     }
 
     HashMap(std::initializer_list<value_type_nonconst> init, Hash hasher = Hash()) : HashMap() {
-        for (auto iter : init) {
-            insert(iter);
-        }
+        fill(init);
     }
 
     template<class IteratorType>
@@ -69,22 +66,19 @@ public:
         if (find(user_key) != nodes.end()) {
             return;
         }
-        std::size_t cur_hash = hasher(user_key);
-        cur_hash %= size_table;
+        std::size_t cur_hash = hasher(user_key) % size_table;
         nodes.push_back(insertable);
-        iterator cur_it = nodes.end();
-        cur_it--;
+        iterator cur_it = std::prev(nodes.end(), 1);
         table[cur_hash].push_back(cur_it);
-        if (table[cur_hash].size() > size_table / default_size) {
+        if (table[cur_hash].size() > size_table / size_default) {
             rebuilt();
         }
     }
 
     void erase(KeyType user_key) {
-        std::size_t cur_hash = hasher(user_key);
-        cur_hash %= size_table;
+        std::size_t cur_hash = hasher(user_key) % size_table;
         if (find(user_key) != nodes.end()) {
-            typename std::list<iterator>::iterator cur_it = table[cur_hash].begin();
+            auto cur_it = table[cur_hash].begin();
             for (auto i : table[cur_hash]) {
                 if (i->first == user_key) {
                     nodes.erase(i);
@@ -97,8 +91,7 @@ public:
     }
 
     iterator find(KeyType user_key) noexcept {
-        std::size_t cur_hash = hasher(user_key);
-        cur_hash %= size_table;
+        std::size_t cur_hash = hasher(user_key) % size_table;
         for (auto iter : table[cur_hash]) {
             KeyType cur_key = iter->first;
             if (cur_key == user_key) {
@@ -109,8 +102,7 @@ public:
     }
 
     const_iterator find(KeyType user_key) const noexcept {
-        std::size_t cur_hash = hasher(user_key);
-        cur_hash %= size_table;
+        std::size_t cur_hash = hasher(user_key) % size_table;
         for (auto iter : table[cur_hash]) {
             KeyType cur_key = iter->first;
             if (cur_key == user_key) {
@@ -122,8 +114,8 @@ public:
 
     void clear() {
         table.clear();
-        size_table = default_size;
-        table.resize(default_size);
+        size_table = size_default;
+        table.resize(size_default);
         nodes.clear();
     }
 
@@ -136,8 +128,7 @@ public:
 
     ValueType &operator[](const KeyType user_key) {
         if (find(user_key) == nodes.end()) {
-            static ValueType default_;
-            insert(value_type_nonconst(user_key, default_));
+            insert(value_type_nonconst(user_key, {}));
             return find(user_key)->second;
         }
         return find(user_key)->second;
@@ -148,17 +139,9 @@ public:
             return *this;
         }
         clear();
-        for (auto it : user_map) {
-            insert(it);
-        }
+        fill(user_map);
         return *this;
     }
-
-    void initialisation() {
-        size_table = default_size;
-        table.resize(default_size);
-    }
-
 
 private:
     std::size_t size_table;
@@ -175,6 +158,13 @@ private:
             table[hasher(i->first) % sz].push_back(i);
         }
         size_table *= 2;
+    }
+
+    template<class ObjType>
+    void fill(ObjType obj) {
+        for (auto it: obj) {
+            insert(it);
+        }
     }
 };
 
