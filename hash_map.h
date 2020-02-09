@@ -34,9 +34,7 @@ public:
         return nodes.end();
     }
 
-    HashMap(Hash hasher = Hash()) : size_table(size_default), hasher(hasher) {
-        table.resize(size_default);
-    }
+    HashMap(Hash hasher = Hash()) : size_table(size_default), hasher(hasher), table(size_default) {}
 
     HashMap(std::initializer_list<value_type_nonconst> init, Hash hasher = Hash()) : HashMap() {
         fill(init);
