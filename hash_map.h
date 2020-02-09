@@ -39,18 +39,14 @@ public:
         table.resize(default_size);
     }
 
-    HashMap(std::initializer_list<value_type_nonconst> init, Hash hasher = Hash()) : hasher(hasher) {
-        size_table = default_size;
-        table.resize(default_size);
+    HashMap(std::initializer_list<value_type_nonconst> init, Hash hasher = Hash()) : HashMap() {
         for (auto iter : init) {
             insert(iter);
         }
     }
 
     template<class IteratorType>
-    HashMap(IteratorType bgn, IteratorType end, Hash hasher = Hash()) : hasher(hasher) {
-        size_table = default_size;
-        table.resize(default_size);
+    HashMap(IteratorType bgn, IteratorType end, Hash hasher = Hash()) : HashMap() {
         for (auto i = bgn; i != end; i++) {
             insert(*i);
         }
@@ -156,6 +152,11 @@ public:
             insert(it);
         }
         return *this;
+    }
+
+    void initialisation() {
+        size_table = default_size;
+        table.resize(default_size);
     }
 
 
