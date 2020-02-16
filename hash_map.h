@@ -1,5 +1,5 @@
 //
-// Created by semyon on 03.02.2020.
+// Created by semyon on 03.02.2020
 //
 
 #ifndef LONG_CONTEST_HASHMAP_H
